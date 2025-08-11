@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # MongoDB startup script following the same pattern
-DB_NAME="myapp"
-DB_USER="appuser"
-DB_PASSWORD="dbuser123"
-DB_PORT="5000"
+# You can override the following via environment variables before running this script:
+#   DB_NAME, DB_USER, DB_PASSWORD, DB_PORT, DB_SEED
+DB_NAME="${DB_NAME:-myapp}"
+DB_USER="${DB_USER:-appuser}"
+DB_PASSWORD="${DB_PASSWORD:-dbuser123}"
+DB_PORT="${DB_PORT:-5000}"
 
 echo "Starting MongoDB setup..."
 
@@ -117,11 +119,29 @@ EOF
 echo "mongosh mongodb://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}?authSource=admin" > db_connection.txt
 echo "Connection string saved to db_connection.txt"
 
-# Save environment variables to a file
+# Save environment variables to a file for the db viewer
 cat > db_visualizer/mongodb.env << EOF
 export MONGODB_URL="mongodb://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/?authSource=admin"
 export MONGODB_DB="${DB_NAME}"
 EOF
+
+# Initialize collections and indexes
+echo "Initializing MongoDB collections and indexes for Tic Tac Toe..."
+if mongosh --port ${DB_PORT} ${DB_NAME} init/initialize_collections.js; then
+    echo "Collections and indexes initialized."
+else
+    echo "WARNING: Failed to initialize collections and indexes."
+fi
+
+# Optional seed data if requested: set DB_SEED=1 before running this script
+if [ "${DB_SEED}" = "1" ]; then
+    echo "Seeding example data into ${DB_NAME}..."
+    if mongosh --port ${DB_PORT} ${DB_NAME} init/seed_example_data.js; then
+        echo "Seed data inserted."
+    else
+        echo "WARNING: Failed to seed example data."
+    fi
+fi
 
 echo "MongoDB setup complete!"
 echo "Database: ${DB_NAME}"
