@@ -1,0 +1,4 @@
+{
+    "command": "cd db_visualizer && npm install",
+    "working_directory": "/home/kavia/workspace/code-generation/tic-tac-toe-play-and-chat-121549-121559/tic_tac_toe_database"
+}
